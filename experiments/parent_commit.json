@@ -1,0 +1,113 @@
+{
+  "sha": "4842cff0ea80d0e29fe541ab096803c321a6fffd",
+  "node_id": "MDY6Q29tbWl0Mjk5MTEyMDo0ODQyY2ZmMGVhODBkMGUyOWZlNTQxYWIwOTY4MDNjMzIxYTZmZmZk",
+  "commit": {
+    "author": {
+      "name": "Florian Bruhin",
+      "email": "me@the-compiler.org",
+      "date": "2020-01-21T14:22:09Z"
+    },
+    "committer": {
+      "name": "Florian Bruhin",
+      "email": "me@the-compiler.org",
+      "date": "2020-01-21T17:28:21Z"
+    },
+    "message": "Replace Unipath by pathlib.Path\n\nSee #229",
+    "tree": {
+      "sha": "b1909bee7dd1e56a7983e0a9b84a2d671d0e8736",
+      "url": "https://api.github.com/repos/studentenportal/web/git/trees/b1909bee7dd1e56a7983e0a9b84a2d671d0e8736"
+    },
+    "url": "https://api.github.com/repos/studentenportal/web/git/commits/4842cff0ea80d0e29fe541ab096803c321a6fffd",
+    "comment_count": 0,
+    "verification": {
+      "verified": false,
+      "reason": "unsigned",
+      "signature": null,
+      "payload": null,
+      "verified_at": null
+    }
+  },
+  "url": "https://api.github.com/repos/studentenportal/web/commits/4842cff0ea80d0e29fe541ab096803c321a6fffd",
+  "html_url": "https://github.com/studentenportal/web/commit/4842cff0ea80d0e29fe541ab096803c321a6fffd",
+  "comments_url": "https://api.github.com/repos/studentenportal/web/commits/4842cff0ea80d0e29fe541ab096803c321a6fffd/comments",
+  "author": {
+    "login": "The-Compiler",
+    "id": 625793,
+    "node_id": "MDQ6VXNlcjYyNTc5Mw==",
+    "avatar_url": "https://avatars.githubusercontent.com/u/625793?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/The-Compiler",
+    "html_url": "https://github.com/The-Compiler",
+    "followers_url": "https://api.github.com/users/The-Compiler/followers",
+    "following_url": "https://api.github.com/users/The-Compiler/following{/other_user}",
+    "gists_url": "https://api.github.com/users/The-Compiler/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/The-Compiler/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/The-Compiler/subscriptions",
+    "organizations_url": "https://api.github.com/users/The-Compiler/orgs",
+    "repos_url": "https://api.github.com/users/The-Compiler/repos",
+    "events_url": "https://api.github.com/users/The-Compiler/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/The-Compiler/received_events",
+    "type": "User",
+    "user_view_type": "public",
+    "site_admin": false
+  },
+  "committer": {
+    "login": "The-Compiler",
+    "id": 625793,
+    "node_id": "MDQ6VXNlcjYyNTc5Mw==",
+    "avatar_url": "https://avatars.githubusercontent.com/u/625793?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/The-Compiler",
+    "html_url": "https://github.com/The-Compiler",
+    "followers_url": "https://api.github.com/users/The-Compiler/followers",
+    "following_url": "https://api.github.com/users/The-Compiler/following{/other_user}",
+    "gists_url": "https://api.github.com/users/The-Compiler/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/The-Compiler/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/The-Compiler/subscriptions",
+    "organizations_url": "https://api.github.com/users/The-Compiler/orgs",
+    "repos_url": "https://api.github.com/users/The-Compiler/repos",
+    "events_url": "https://api.github.com/users/The-Compiler/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/The-Compiler/received_events",
+    "type": "User",
+    "user_view_type": "public",
+    "site_admin": false
+  },
+  "parents": [
+    {
+      "sha": "5ec60ce439a8aa0fb0b5b02a04a7e2e0849fbf2b",
+      "url": "https://api.github.com/repos/studentenportal/web/commits/5ec60ce439a8aa0fb0b5b02a04a7e2e0849fbf2b",
+      "html_url": "https://github.com/studentenportal/web/commit/5ec60ce439a8aa0fb0b5b02a04a7e2e0849fbf2b"
+    }
+  ],
+  "stats": {
+    "total": 9,
+    "additions": 4,
+    "deletions": 5
+  },
+  "files": [
+    {
+      "sha": "7c65afb2cc597bfc187c0ad6859349c94aabfcce",
+      "filename": "config/settings.py",
+      "status": "modified",
+      "additions": 4,
+      "deletions": 4,
+      "changes": 8,
+      "blob_url": "https://github.com/studentenportal/web/blob/4842cff0ea80d0e29fe541ab096803c321a6fffd/config%2Fsettings.py",
+      "raw_url": "https://github.com/studentenportal/web/raw/4842cff0ea80d0e29fe541ab096803c321a6fffd/config%2Fsettings.py",
+      "contents_url": "https://api.github.com/repos/studentenportal/web/contents/config%2Fsettings.py?ref=4842cff0ea80d0e29fe541ab096803c321a6fffd",
+      "patch": "@@ -5,7 +5,7 @@\n import sys\n import datetime\n \n-from unipath import Path\n+from pathlib import Path\n \n from django.core.exceptions import ImproperlyConfigured\n \n@@ -21,7 +21,7 @@ def require_env(name):\n     return value\n \n \n-PROJECT_ROOT = Path(__file__).ancestor(2)\n+PROJECT_ROOT = Path(__file__).parents[1]\n \n ADMINS = (\n     ('Studentenportal Team', 'team@studentenportal.ch'),\n@@ -81,7 +81,7 @@ def require_env(name):\n \n # Absolute filesystem path to the directory that will hold user-uploaded files.\n # Example: \"/home/media/media.lawrence.com/media/\"\n-MEDIA_ROOT = env('DJANGO_MEDIA_ROOT', PROJECT_ROOT.child('media'))\n+MEDIA_ROOT = env('DJANGO_MEDIA_ROOT', PROJECT_ROOT / 'media')\n \n # URL that handles the media served from MEDIA_ROOT. Make sure to use a\n # trailing slash.\n@@ -92,7 +92,7 @@ def require_env(name):\n # Don't put anything in this directory yourself; store your static files\n # in apps' \"static/\" subdirectories and in STATICFILES_DIRS.\n # Example: \"/home/media/media.lawrence.com/static/\"\n-STATIC_ROOT = env('DJANGO_STATIC_ROOT', PROJECT_ROOT.child('static'))\n+STATIC_ROOT = env('DJANGO_STATIC_ROOT', PROJECT_ROOT / 'static')\n \n # URL prefix for static files.\n # Example: \"http://media.lawrence.com/static/\""
+    },
+    {
+      "sha": "2f875541309e56cf76a8bbd6b626235f0aad1698",
+      "filename": "requirements/base.txt",
+      "status": "modified",
+      "additions": 0,
+      "deletions": 1,
+      "changes": 1,
+      "blob_url": "https://github.com/studentenportal/web/blob/4842cff0ea80d0e29fe541ab096803c321a6fffd/requirements%2Fbase.txt",
+      "raw_url": "https://github.com/studentenportal/web/raw/4842cff0ea80d0e29fe541ab096803c321a6fffd/requirements%2Fbase.txt",
+      "contents_url": "https://api.github.com/repos/studentenportal/web/contents/requirements%2Fbase.txt?ref=4842cff0ea80d0e29fe541ab096803c321a6fffd",
+      "patch": "@@ -1,7 +1,6 @@\n # Base system\n Django>=1.11,<1.12\n psycopg2==2.8.4\n-Unipath==1.1\n python-dateutil==2.8.1\n \n # Useful/important apps"
+    }
+  ]
+}
