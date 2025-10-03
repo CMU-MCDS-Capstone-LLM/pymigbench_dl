@@ -2,6 +2,7 @@
 Main downloader coordinator for PyMigBench dataset.
 """
 
+import os
 import shutil
 import logging
 from pathlib import Path
@@ -85,9 +86,8 @@ class PyMigBenchDownloader:
             # Extract the zip directly to temp directory
             if not self.github_client.extract_zip(zip_path, temp_dir):
                 return False
-            
-            # Only move to final location if everything succeeded
-            temp_dir.rename(commit_dir)
+
+            assert os.path.exists(commit_dir)
             
             self.logger.info(f"Successfully processed {commit_info.repo}:{commit_info.commit_sha} -> {commit_dir}")
             return True

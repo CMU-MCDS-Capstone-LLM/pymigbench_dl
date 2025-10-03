@@ -80,7 +80,10 @@ class GitHubClient:
 
     def extract_zip(self, zip_path: Path, extract_to: Path) -> bool:
         """
-        Extract a zip file and clean up the zip.
+        Extract a zip file, flatten GitHub subdirectory structure, and clean up.
+        
+        GitHub zip files contain exactly one subdirectory with all source code.
+        This method extracts and moves contents directly to target directory using shell commands.
         
         Args:
             zip_path: Path to the zip file
@@ -90,13 +93,35 @@ class GitHubClient:
             True if extraction successful, False otherwise
         """
         try:
+            import subprocess
+            
+            # Extract zip to target directory
             with zipfile.ZipFile(zip_path, 'r') as zip_ref:
                 zip_ref.extractall(extract_to)
+
+            # Find the single subdirectory GitHub created
+            subdirs = [d for d in extract_to.iterdir() if d.is_dir()]
+            if len(subdirs) != 1:
+                self.logger.error(f"Expected exactly 1 subdirectory in {zip_path}, found {len(subdirs)}")
+                return False
             
-            # Remove the zip file after extraction
+            github_subdir = subdirs[0]
+
+            base_dir = extract_to.parent
+            # e.g. extract_to = '.temp__holgern_beem__f5ba90e2cc5bb88b29b173bae11ba46e06efecf7'
+            # then, move_to = 'holgern_beem__f5ba90e2cc5bb88b29b173bae11ba46e06efecf7'
+            move_to = base_dir / "__".join(extract_to.name.split("__")[1:])
+            
+            # Step 2: mv temp_target_dir/github_subdir/ target_dir/
+            subprocess.run(["mv", str(github_subdir.absolute()), str(move_to.absolute())], check=True)
+            
+            # Step 3: Remove the zip file after extraction
             zip_path.unlink()
+            
+            # Step 4: rm the empty "extract_to" dir
+            extract_to.rmdir()
             return True
             
-        except (zipfile.BadZipFile, OSError) as e:
+        except (zipfile.BadZipFile, OSError, subprocess.CalledProcessError) as e:
             self.logger.error(f"Error extracting {zip_path}: {e}")
             return False
