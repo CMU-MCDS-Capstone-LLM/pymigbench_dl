@@ -3,6 +3,7 @@ Main downloader coordinator for PyMigBench dataset.
 """
 
 import os
+import time
 import shutil
 import logging
 from pathlib import Path
@@ -17,10 +18,11 @@ from .pymigbench_loader import PyMigBenchLoader
 class PyMigBenchDownloader:
     """Main coordinator for downloading PyMigBench dataset."""
     
-    def __init__(self, github_token: str, output_dir: str = "repos", max_workers: int = 5):
+    def __init__(self, github_token: str, output_dir: str = "repos", max_workers: int = 5, rate_limit_delay: float = 1.0):
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(exist_ok=True)
         self.max_workers = max_workers
+        self.rate_limit_delay = rate_limit_delay
         
         # Initialize components
         self.github_client = GitHubClient(github_token)
@@ -88,6 +90,15 @@ class PyMigBenchDownloader:
                 return False
 
             assert os.path.exists(commit_dir)
+
+            # Initialize git repo and make dummy commit
+            if not self._initialize_git_repo(commit_dir):
+                # Remove the downloaded commit snapshot
+                shutil.rmtree(commit_dir)
+                return False
+            
+            # Rate limiting to respect GitHub API
+            time.sleep(self.rate_limit_delay)
             
             self.logger.info(f"Successfully processed {commit_info.repo}:{commit_info.commit_sha} -> {commit_dir}")
             return True
@@ -99,6 +110,34 @@ class PyMigBenchDownloader:
                 shutil.rmtree(temp_dir)
             return False
 
+    def _initialize_git_repo(self, repo_dir: Path) -> bool:
+        """
+        Initialize a git repository and create a dummy commit.
+        
+        Args:
+            repo_dir: Directory to initialize as git repo
+        """
+        try:
+            import subprocess
+            
+            # Change to the repository directory and run git commands
+            git_commands = [
+                ["git", "init"],
+                ["git", "add", "."],
+                ["git", "-c", "user.name=PyMigBench Downloader", "-c", "user.email=downloader@pymigbench.local", 
+                 "commit", "-m", "init commit (git history of original repo is removed)"]
+            ]
+            
+            for cmd in git_commands:
+                subprocess.run(cmd, cwd=repo_dir, check=True, capture_output=True)
+            
+            self.logger.debug(f"Initialized git repo in {repo_dir}")
+            return True
+            
+        except subprocess.CalledProcessError as e:
+            self.logger.warning(f"Failed to initialize git repo in {repo_dir}: {e}")
+            return False
+        
 
     def download_all(self, yaml_root_path: str, max_count: Optional[int] = None) -> None:
         """

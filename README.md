@@ -45,6 +45,7 @@ python3 main.py \
 - `--github-token`: GitHub API token (or set GITHUB_TOKEN env var)
 - `--max-workers`: Number of concurrent downloads (default: 5)
 - `--max-count`: Limit number of commits for testing (optional)
+- `--rate-limit`: Delay between downloads in seconds (default: 1.0)
 
 ## Output Structure
 

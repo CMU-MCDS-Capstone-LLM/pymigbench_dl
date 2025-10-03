@@ -24,6 +24,7 @@ def main():
     parser.add_argument("--github-token", help="GitHub API token (or set GITHUB_TOKEN env var)")
     parser.add_argument("--max-workers", type=int, default=5, help="Number of concurrent downloads")
     parser.add_argument("--max-count", type=int, help="Limit number of commits (for testing)")
+    parser.add_argument("--rate-limit", type=float, default=1.0, help="Delay between downloads in seconds (default: 1.0)")
     
     args = parser.parse_args()
     
@@ -37,7 +38,8 @@ def main():
     downloader = PyMigBenchDownloader(
         github_token=github_token,
         output_dir=args.output_dir,
-        max_workers=args.max_workers
+        max_workers=args.max_workers,
+        rate_limit_delay=args.rate_limit
     )
     
     try:
