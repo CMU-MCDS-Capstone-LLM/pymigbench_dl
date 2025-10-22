@@ -5,8 +5,6 @@ Instead of cloning full histories, it downloads **only the parent of each target
 
 ## TODO
 
-* [ ] Rewrite README.md
-
 * [ ] Create a commit that reflect the post-mig status of the repo
 
 * [ ] Modify the date of commit, b/c we will use date to heuristically discover python interpreter version

@@ -17,8 +17,8 @@ def build_parser() -> argparse.ArgumentParser:
 
     # download-all
     a = sub.add_parser("dl-all", help="Download all commits from a YAML root")
-    a.add_argument("--yaml-root")
-    a.add_argument("--output-dir")
+    a.add_argument("--yaml-root", required=True)
+    a.add_argument("--output-dir", required=True)
     a.add_argument("--github-token")
     a.add_argument("--max-workers", type=int, default=5)
     a.add_argument("--max-count", type=int)
@@ -26,8 +26,8 @@ def build_parser() -> argparse.ArgumentParser:
 
     # download-single
     s = sub.add_parser("dl-single", help="Download a single commit from a YAML file")
-    s.add_argument("--yaml-file")
-    s.add_argument("--output-dir")
+    s.add_argument("--yaml-file", required=True)
+    s.add_argument("--output-dir", required=True)
     s.add_argument("--github-token")
 
     p.add_argument("-v", "--verbose", action="count", default=0)
