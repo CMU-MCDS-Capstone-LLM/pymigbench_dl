@@ -3,14 +3,17 @@ PyMigBench dataset loader using the official PyMigBench Python package.
 """
 
 import logging
-from typing import List, Optional
+from pathlib import Path
+from typing import List
+from pymigbench.migration import Migration
+import yaml
 
-try:
-    from pymigbench.database import Database
-except ImportError:
-    raise ImportError("PyMigBench package not found. Install with: pip install pymigbench")
+from pymigbench.database import Database
+from pymigbench.parsers import parse_migration
 
-from .models import CommitInfo
+
+from .utils.paths import to_path
+from .providers.github.models import CommitInfo
 
 
 class PyMigBenchLoader:
@@ -19,7 +22,7 @@ class PyMigBenchLoader:
     def __init__(self):
         self.logger = logging.getLogger(__name__)
 
-    def load_commits_from_database(self, yaml_root_path: str) -> List[CommitInfo]:
+    def load_all_commits_from_database(self, yaml_root_path: str) -> List[CommitInfo]:
         """
         Load migration data from PyMigBench dataset using the official API.
         
@@ -59,4 +62,25 @@ class PyMigBenchLoader:
         except Exception as e:
             self.logger.error(f"Error loading PyMigBench database: {e}")
             raise
+
+    def load_single_commit_from_yaml(self, yaml_file_path: str) -> CommitInfo:
+        """
+        Load a single migration commit from a yaml file, following PyMigBench's yaml format
+
+        PyMigBench didn't provide this functionality, so we have to implement it with non-documented fucntions from PyMigBench package.
+        """
+
+        path = to_path(yaml_file_path)
+        migration = self.parse_mig_from_file(path)
+        commit_info = CommitInfo(
+            repo=migration.repo,
+            commit_sha=migration.commit
+        )
+        return commit_info
+
+    # parse_mig_from_file function is copied from PyMigBench's source code
+    def parse_mig_from_file(self, path: Path) -> Migration:
+        raw = yaml.unsafe_load(path.read_text("utf8"))
+        migration = parse_migration(raw)
+        return migration
 

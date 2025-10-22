@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pymigbench-dl"
+version = "0.1.0"
+description = "A tool to download repositories from PyMigBench dataset"
+authors = [{ name = "Xinyu Li", email = "eigerli@outlook.com" }]
+readme = "README.md"
+requires-python = ">=3.11"
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+]
+keywords = ["pymigbench", "dataset", "migration", "github", "downloader"]
+dependencies = [
+  "requests>=2.25.0",
+  "PyYAML>=6.0",
+  "pymigbench>=2.0.0"
+]
+
+[project.scripts]
+pymigbench-dl = "pymigbench_dl.cli.main:main"
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0",
+  "pytest-cov>=4.1",
+  "requests-mock>=1.11",
+  "ruff>=0.6",
+  "mypy>=1.11",
+  "types-PyYAML",
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+

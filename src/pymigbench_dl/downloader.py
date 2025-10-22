@@ -9,18 +9,21 @@ import logging
 from pathlib import Path
 from typing import Optional
 from concurrent.futures import ThreadPoolExecutor, as_completed
+import subprocess
 
-from .models import CommitInfo
-from .github_client import GitHubClient
-from .pymigbench_loader import PyMigBenchLoader
+from .utils.paths import to_path
+
+from .providers.github.models import CommitInfo
+from .providers.github.client import GitHubClient
+from .loader import PyMigBenchLoader
 
 
 class PyMigBenchDownloader:
     """Main coordinator for downloading PyMigBench dataset."""
     
     def __init__(self, github_token: str, output_dir: str = "repos", max_workers: int = 5, rate_limit_delay: float = 1.0):
-        self.output_dir = Path(output_dir)
-        self.output_dir.mkdir(exist_ok=True)
+        self.output_dir = to_path(output_dir, check_exists=False)
+        self.output_dir.mkdir(parents=True, exist_ok=True)
         self.max_workers = max_workers
         self.rate_limit_delay = rate_limit_delay
         
@@ -29,21 +32,9 @@ class PyMigBenchDownloader:
         self.pymigbench_loader = PyMigBenchLoader()
         
         # Setup logging to both file and console
-        self._setup_logging()
-
-    def _setup_logging(self) -> None:
-        """Setup logging configuration."""
-        log_file = self.output_dir / "download.log"
-        logging.basicConfig(
-            level=logging.INFO,
-            format='%(asctime)s - %(levelname)s - %(message)s',
-            handlers=[
-                logging.FileHandler(log_file),
-                logging.StreamHandler()
-            ]
-        )
         self.logger = logging.getLogger(__name__)
-        self.logger.info(f"PyMigBench Downloader initialized. Log file: {log_file}")
+        self.logger.info("Initialized downloader with output folder %s (workers=%d, rate=%.2fs)",
+                       self.output_dir, self.max_workers, self.rate_limit_delay)
 
     def process_single_commit(self, commit_info: CommitInfo) -> bool:
         """
@@ -118,7 +109,6 @@ class PyMigBenchDownloader:
             repo_dir: Directory to initialize as git repo
         """
         try:
-            import subprocess
             
             # Change to the repository directory and run git commands
             git_commands = [
@@ -137,8 +127,17 @@ class PyMigBenchDownloader:
         except subprocess.CalledProcessError as e:
             self.logger.warning(f"Failed to initialize git repo in {repo_dir}: {e}")
             return False
-        
 
+    def download_single(self, yaml_file_path: str) -> None:
+        """
+        Download a single commit from PyMigBench dataset, following the provided yaml file
+
+        Args:
+            yaml_file_path: path to the yaml file that defines a migration commit in PyMigBench format
+        """
+        commit_info = self.pymigbench_loader.load_single_commit_from_yaml(yaml_file_path)
+        self.process_single_commit(commit_info)
+        
     def download_all(self, yaml_root_path: str, max_count: Optional[int] = None) -> None:
         """
         Download all valid commits from PyMigBench dataset.
@@ -147,7 +146,7 @@ class PyMigBenchDownloader:
             yaml_root_path: Path to the directory containing PyMigBench YAML files
             max_count: Optional limit on number of commits to process (for testing)
         """
-        commits = self.pymigbench_loader.load_commits_from_database(yaml_root_path)
+        commits = self.pymigbench_loader.load_all_commits_from_database(yaml_root_path)
         
         if max_count:
             commits = commits[:max_count]

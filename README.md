@@ -2,9 +2,30 @@
 
 This script efficiently downloads the PyMigBench dataset by downloading only the parent commits of target commits that have exactly one parent.
 
+## TODO
+
+- [ ] Create a commit that reflect the post-mig status of the repo
+
+- [ ] Modify the date of commit, b/c we will use date to heuristically discover python interpreter version
+
+- [ ] Also include the pymigbench yaml file that describes the migration
+
+    The folder would end up like this
+
+    ```
+    repos/
+    |- <repo>_<commit sha>/
+    |  |- codebase/
+    |  |  |- .git/    # this contains two commits: pre-mig and post-mig commits
+    |  |  |- actual codebase...
+    |  |- data/
+    |  |  |- mig.yaml # enhanced ver. of PyMigBench yaml file, added new fields such as `parent_commit`, `commit_timestamp`, `size (patch_loc: int, patch_touched_python_files: List[str])`
+    ```
+
 ## Overview
 
 For each migration in the PyMigBench dataset, instead of downloading the full repository history, we:
+
 1. Check if the target commit has exactly 1 parent (skip merge commits and initial commits)
 2. Download only the parent commit as a zip file from GitHub
 3. Extract and organize the downloaded commits
@@ -12,11 +33,13 @@ For each migration in the PyMigBench dataset, instead of downloading the full re
 ## Setup
 
 1. Install dependencies:
+
 ```bash
 pip install -r requirements.txt
 ```
 
 2. Set your GitHub token:
+
 ```bash
 export GITHUB_TOKEN="your_github_personal_access_token"
 ```
@@ -26,11 +49,13 @@ export GITHUB_TOKEN="your_github_personal_access_token"
 ## Usage
 
 Basic usage (assumes YAML files are in `./repo-yamls/`):
+
 ```bash
 python3 main.py
 ```
 
 With options:
+
 ```bash
 python3 main.py \
     --yaml-root "./repo-yamls" \
@@ -40,6 +65,7 @@ python3 main.py \
 ```
 
 ### Arguments
+
 - `--yaml-root`: Path to PyMigBench YAML files directory (default: "./repo-yamls")
 - `--output-dir`: Directory to save downloaded repos (default: "repos")
 - `--github-token`: GitHub API token (or set GITHUB_TOKEN env var)
@@ -50,6 +76,7 @@ python3 main.py \
 ## Output Structure
 
 Downloaded commits are organized as:
+
 ```
 repos/
 ├── owner_repo__target_commit_sha/

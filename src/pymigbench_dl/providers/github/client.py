@@ -7,6 +7,7 @@ import requests
 import logging
 from pathlib import Path
 from typing import Optional, Tuple
+import subprocess
 
 
 class GitHubClient:
@@ -17,7 +18,8 @@ class GitHubClient:
         self.session = requests.Session()
         self.session.headers.update({
             "Authorization": f"token {github_token}",
-            "Accept": "application/vnd.github.v3+json"
+            "Accept": "application/vnd.github.v3+json",
+            "User-Agent": "pymigbench-dl"
         })
         self.logger = logging.getLogger(__name__)
 
@@ -93,8 +95,6 @@ class GitHubClient:
             True if extraction successful, False otherwise
         """
         try:
-            import subprocess
-            
             # Extract zip to target directory
             with zipfile.ZipFile(zip_path, 'r') as zip_ref:
                 zip_ref.extractall(extract_to)
