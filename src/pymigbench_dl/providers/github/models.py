@@ -11,8 +11,8 @@ class CommitInfo:
     """Information about a commit to be downloaded."""
     repo: str
     commit_sha: str
-    parent_sha: Optional[str] = None
-    parents_count: int = 0
+    # parent_sha: Optional[str] = None
+    # parents_count: int = 0
 
     @property
     def repo_safe(self) -> str:

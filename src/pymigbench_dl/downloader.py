@@ -11,6 +11,7 @@ from typing import Optional
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import subprocess
 
+from .utils.git import create_git_repo_from_commit
 from .utils.paths import to_path
 
 from .providers.github.models import CommitInfo
@@ -46,86 +47,32 @@ class PyMigBenchDownloader:
         Returns:
             True if processed successfully, False otherwise
         """
-        commit_dir = self.output_dir / commit_info.folder_name
-        
-        # Skip if already downloaded (folder exists means successful download)
-        if commit_dir.exists():
-            self.logger.info(f"Skipping {commit_info.repo}:{commit_info.commit_sha} (already exists at {commit_dir})")
-            return True
-        
-        # Get parent information
-        parent_count, parent_sha = self.github_client.get_commit_parents(commit_info.repo, commit_info.commit_sha)
-        
-        if parent_count != 1:
-            self.logger.info(f"Skipping {commit_info.repo}:{commit_info.commit_sha} ({parent_count} parents)")
-            return False
-        
-        if not parent_sha:
-            self.logger.error(f"No parent SHA found for {commit_info.repo}:{commit_info.commit_sha}")
-            return False
-        
-        # Use a temporary directory for download
-        temp_dir = self.output_dir / f".temp__{commit_info.folder_name}"
-        temp_dir.mkdir(parents=True, exist_ok=True)
-        zip_path = temp_dir / f"{parent_sha}.zip"
-        
         try:
-            # Download parent commit
-            self.logger.info(f"Downloading {commit_info.repo}:{parent_sha} (parent of {commit_info.commit_sha})")
+            repo_folder_name = commit_info.folder_name
+            repo_dir = self.output_dir / repo_folder_name
             
-            if not self.github_client.download_commit_zip(commit_info.repo, parent_sha, zip_path):
+            # Skip if already downloaded (folder exists means successful download)
+            if repo_dir.exists():
+                self.logger.info(f"Skipping {commit_info.repo}:{commit_info.commit_sha} (already exists at {repo_dir})")
+                return True
+            
+            # Get parent information
+            parent_count, parent_sha = self.github_client.get_commit_parents(commit_info.repo, commit_info.commit_sha)
+            
+            if parent_count != 1:
+                self.logger.error(f"Found a repo with parent count not equal 1. Can't handle such case. Skipping {commit_info.repo}:{commit_info.commit_sha} ({parent_count} parents)")
                 return False
             
-            # Extract the zip directly to temp directory
-            if not self.github_client.extract_zip(zip_path, temp_dir):
+            if not parent_sha:
+                self.logger.error(f"No parent SHA found for {commit_info.repo}:{commit_info.commit_sha}")
                 return False
 
-            assert os.path.exists(commit_dir)
-
-            # Initialize git repo and make dummy commit
-            if not self._initialize_git_repo(commit_dir):
-                # Remove the downloaded commit snapshot
-                shutil.rmtree(commit_dir)
-                return False
-            
-            # Rate limiting to respect GitHub API
-            time.sleep(self.rate_limit_delay)
-            
-            self.logger.info(f"Successfully processed {commit_info.repo}:{commit_info.commit_sha} -> {commit_dir}")
+            parent_commit_info = CommitInfo(commit_info.repo, parent_sha)
+            create_git_repo_from_commit(self.output_dir, repo_folder_name, parent_commit_info, self.github_client)
             return True
-            
         except Exception as e:
-            self.logger.error(f"Error processing {commit_info.repo}:{commit_info.commit_sha}: {e}")
-            # Clean up temp directory on failure
-            if temp_dir.exists():
-                shutil.rmtree(temp_dir)
-            return False
-
-    def _initialize_git_repo(self, repo_dir: Path) -> bool:
-        """
-        Initialize a git repository and create a dummy commit.
-        
-        Args:
-            repo_dir: Directory to initialize as git repo
-        """
-        try:
-            
-            # Change to the repository directory and run git commands
-            git_commands = [
-                ["git", "init"],
-                ["git", "add", "."],
-                ["git", "-c", "user.name=PyMigBench Downloader", "-c", "user.email=downloader@pymigbench.local", 
-                 "commit", "-m", "init commit (git history of original repo is removed)"]
-            ]
-            
-            for cmd in git_commands:
-                subprocess.run(cmd, cwd=repo_dir, check=True, capture_output=True)
-            
-            self.logger.debug(f"Initialized git repo in {repo_dir}")
-            return True
-            
-        except subprocess.CalledProcessError as e:
-            self.logger.warning(f"Failed to initialize git repo in {repo_dir}: {e}")
+            self.logger.error(f"Failed to process repo {commit_info.repo} commit {commit_info.commit_sha}")
+            self.logger.error(f"Got error: {e}")
             return False
 
     def download_single(self, yaml_file_path: str) -> None:
