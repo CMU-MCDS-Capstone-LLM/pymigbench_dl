@@ -8,6 +8,7 @@ of target commits that have exactly one parent.
 import os
 import argparse
 import logging
+from pathlib import Path
 
 from ..downloader import PyMigBenchDownloader
 from ..const.git import DEFAULT_GT_PATCH_BRANCH_NAME, DEFAULT_PRE_MIG_BRANCH_NAME
@@ -35,12 +36,26 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--github-token")
 
     p.add_argument("-v", "--verbose", action="count", default=0)
+    p.add_argument("--log-file", help="Path to log file (logs to console only if not specified)")
     return p
 
 def main():
     args = build_parser().parse_args()
     lvl = logging.WARNING if args.verbose == 0 else (logging.INFO if args.verbose == 1 else logging.DEBUG)
-    logging.basicConfig(level=lvl, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+
+    # Configure logging handlers
+    handlers = [logging.StreamHandler()]  # Always log to console
+    if args.log_file:
+        # Ensure the parent directory exists
+        log_path = Path(args.log_file)
+        log_path.parent.mkdir(parents=True, exist_ok=True)
+        handlers.append(logging.FileHandler(args.log_file))
+
+    logging.basicConfig(
+        level=lvl,
+        format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+        handlers=handlers
+    )
 
     github_token = (getattr(args, "github_token", None) or os.getenv("GITHUB_TOKEN"))
     if not github_token:
