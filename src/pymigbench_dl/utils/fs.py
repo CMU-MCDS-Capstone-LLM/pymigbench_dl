@@ -1,7 +1,7 @@
 import tarfile
 from pathlib import Path
 
-def extract_tar_flat(tar_path: Path, extract_to: Path) -> Path:
+def extract_tar_top(tar_path: Path, extract_to: Path) -> Path:
     with tarfile.open(tar_path, "r:gz") as tf:
         tf.extractall(extract_to)
     subdirs = [d for d in extract_to.iterdir() if d.is_dir()]

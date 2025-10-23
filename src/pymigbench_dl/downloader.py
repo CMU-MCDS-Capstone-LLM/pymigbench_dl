@@ -19,6 +19,8 @@ class PyMigBenchDownloader:
     """Main coordinator for downloading PyMigBench dataset."""
     
     def __init__(self, github_token: str, output_dir: str = "repos", max_workers: int = 5, rate_limit_delay: float = 1.0):
+        if github_token == None or github_token == "":
+            raise RuntimeError("We require the user to provide a GitHub token to use pymigbench_dl to avoid being rate-limited by GitHub.")
         self.output_dir = to_path(output_dir, check_exists=False)
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.max_workers = max_workers

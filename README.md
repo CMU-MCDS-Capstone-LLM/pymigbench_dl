@@ -5,9 +5,9 @@ Instead of cloning full histories, it downloads **only the parent of each target
 
 ## TODO
 
-* [ ] Create a commit that reflect the post-mig status of the repo
+* [x] Create a commit that reflect the post-mig status of the repo
 
-* [ ] Modify the date of commit, b/c we will use date to heuristically discover python interpreter version
+* [x] Remove debug parameter max_count
 
 ## Overview
 

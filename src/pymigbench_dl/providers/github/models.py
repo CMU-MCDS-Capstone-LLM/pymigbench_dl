@@ -3,7 +3,6 @@ Data models for PyMigBench downloader.
 """
 
 from dataclasses import dataclass
-from typing import Optional
 
 
 @dataclass
@@ -11,8 +10,6 @@ class CommitInfo:
     """Information about a commit to be downloaded."""
     repo: str
     commit_sha: str
-    # parent_sha: Optional[str] = None
-    # parents_count: int = 0
 
     @property
     def repo_safe(self) -> str:
@@ -21,5 +18,5 @@ class CommitInfo:
 
     @property
     def folder_name(self) -> str:
-        """Folder name for this commit download."""
+        """Folder name for this commit download. Unique across PyMigBench"""
         return f"{self.repo_safe}__{self.commit_sha}"
