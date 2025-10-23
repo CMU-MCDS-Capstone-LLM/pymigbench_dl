@@ -67,7 +67,6 @@ pymigbench-dl -v dl-all \
   --output-dir /path/to/output \
   --github-token "$GITHUB_TOKEN" \
   --max-workers 8 \
-  --max-count 100 \
   --rate-limit 0.5
 ```
 
@@ -77,7 +76,6 @@ pymigbench-dl -v dl-all \
 * `--output-dir` *(optional)*: Where snapshots go. Defaults to `repos/` if omitted.
 * `--github-token` *(optional)*: Falls back to `$GITHUB_TOKEN`.
 * `--max-workers` *(optional, default 5)*: Thread pool size.
-* `--max-count` *(optional)*: Process only the first N entries (useful for smoke tests).
 * `--rate-limit` *(optional, default 1.0)*: Sleep (seconds) between downloads.
 
 ### Download a single commit (single YAML file)
@@ -117,7 +115,7 @@ dl = PyMigBenchDownloader(
 )
 
 # Download everything listed in the YAML database directory
-dl.download_all("/path/to/repo-yamls", max_count=50)
+dl.download_all("/path/to/repo-yamls")
 
 # Or download one migration from a YAML file
 dl.download_single("/path/to/migration.yaml")

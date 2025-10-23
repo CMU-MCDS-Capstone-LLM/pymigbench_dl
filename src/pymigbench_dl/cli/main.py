@@ -23,7 +23,6 @@ def build_parser() -> argparse.ArgumentParser:
     a.add_argument("--gt-patch-branch-name", default=DEFAULT_GT_PATCH_BRANCH_NAME)
     a.add_argument("--github-token")
     a.add_argument("--max-workers", type=int, default=5)
-    a.add_argument("--max-count", type=int)
     a.add_argument("--rate-limit", type=float, default=1.0)
 
     # download-single
@@ -53,7 +52,7 @@ def main():
     )
 
     if args.cmd == "dl-all":
-        dl.download_all(args.yaml_root, args.gt_patch_branch_name, getattr(args, "max_count", None))
+        dl.download_all(args.yaml_root, args.gt_patch_branch_name)
     elif args.cmd == "dl-single":
         dl.download_single(args.yaml_file, args.gt_patch_branch_name)
 

@@ -64,20 +64,15 @@ class PyMigBenchDownloader:
         commit_info = self.pymigbench_loader.load_single_commit_from_yaml(yaml_file_path)
         self.process_single_commit(commit_info, gt_patch_branch_name)
         
-    def download_all(self, yaml_root_path: str, gt_patch_branch_name: str = DEFAULT_GT_PATCH_BRANCH_NAME, max_count: Optional[int] = None) -> None:
+    def download_all(self, yaml_root_path: str, gt_patch_branch_name: str = DEFAULT_GT_PATCH_BRANCH_NAME) -> None:
         """
         Download all valid commits from PyMigBench dataset.
         
         Args:
             yaml_root_path: Path to the directory containing PyMigBench YAML files
             gt_patch_branch_name: Name of the branch that is created using the snapshot at ground-truth patch (i.e. migration patch)
-            max_count: Optional limit on number of commits to process (for testing)
         """
         commits = self.pymigbench_loader.load_all_commits_from_database(yaml_root_path)
-        
-        if max_count:
-            commits = commits[:max_count]
-            self.logger.info(f"Limited to {max_count} commits for testing")
         
         self.logger.info(f"Starting download of {len(commits)} commits using {self.max_workers} workers")
         
