@@ -5,6 +5,7 @@ import tempfile
 from pathlib import Path
 
 from ..const.git import (
+    DEFAULT_PRE_MIG_BRANCH_NAME,
     PYMIGBENCH_DL_PRE_MIG_COMMIT_MSG,
     PYMIGBENCH_DL_GT_MIG_COMMIT_MSG,
 )
@@ -44,9 +45,9 @@ def _materialize_commit_tree(dst_dir: Path, commit: CommitInfo, github: GitHubCl
         _clear_worktree_but_git(dst_dir)
         _move_children(extracted_top, dst_dir)
 
-def _initialize_git_repo(repo_dir: Path) -> None:
-    logger.debug("Initializing git repo at %s", repo_dir)
-    run_git(repo_dir, "init")
+def _initialize_git_repo(repo_dir: Path, branch_name: str) -> None:
+    logger.debug("Initializing git repo at %s with branch %s", repo_dir, branch_name)
+    run_git(repo_dir, "init", "-b", branch_name)
     add_and_commit(repo_dir, PYMIGBENCH_DL_PRE_MIG_COMMIT_MSG)
 
 def _create_gt_branch_from_commit(repo_dir: Path, branch_name: str,
@@ -74,10 +75,11 @@ def create_pymigbench_type_repo(
     output_dir: Path,
     gt_patch_branch_name: str,
     github_client: GitHubClient,
+    pre_mig_branch_name: str = DEFAULT_PRE_MIG_BRANCH_NAME,
 ) -> None:
     """
     Transactionally build the repo:
-      - Base = parent of migration commit (initial commit on default branch)
+      - Base = parent of migration commit (initial commit on pre_mig_branch_name)
       - New branch = gt_patch_branch_name with migration snapshot commit on top
     Publish to output_dir only if everything succeeds.
     Policy: if final_dir already exists, we assume it's correct and SKIP.
@@ -102,7 +104,7 @@ def create_pymigbench_type_repo(
 
         # 1) parent snapshot -> initial commit
         _materialize_commit_tree(staging_repo, parent_info, github_client)
-        _initialize_git_repo(staging_repo)
+        _initialize_git_repo(staging_repo, pre_mig_branch_name)
 
         # 2) GT branch -> migration snapshot commit
         _create_gt_branch_from_commit(staging_repo, gt_patch_branch_name, mig_commit_info, github_client)

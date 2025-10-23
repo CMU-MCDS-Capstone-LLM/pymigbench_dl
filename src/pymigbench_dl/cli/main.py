@@ -10,7 +10,7 @@ import argparse
 import logging
 
 from ..downloader import PyMigBenchDownloader
-from ..const.git import DEFAULT_GT_PATCH_BRANCH_NAME
+from ..const.git import DEFAULT_GT_PATCH_BRANCH_NAME, DEFAULT_PRE_MIG_BRANCH_NAME
 
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="pymigbench-dl", description="PyMigBench downloader helper")
@@ -21,6 +21,7 @@ def build_parser() -> argparse.ArgumentParser:
     a.add_argument("--yaml-root", required=True)
     a.add_argument("--output-dir", required=True)
     a.add_argument("--gt-patch-branch-name", default=DEFAULT_GT_PATCH_BRANCH_NAME)
+    a.add_argument("--pre-mig-branch-name", default=DEFAULT_PRE_MIG_BRANCH_NAME)
     a.add_argument("--github-token")
     a.add_argument("--max-workers", type=int, default=5)
     a.add_argument("--rate-limit", type=float, default=1.0)
@@ -30,6 +31,7 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--yaml-file", required=True)
     s.add_argument("--output-dir", required=True)
     s.add_argument("--gt-patch-branch-name", default=DEFAULT_GT_PATCH_BRANCH_NAME)
+    s.add_argument("--pre-mig-branch-name", default=DEFAULT_PRE_MIG_BRANCH_NAME)
     s.add_argument("--github-token")
 
     p.add_argument("-v", "--verbose", action="count", default=0)
@@ -52,9 +54,9 @@ def main():
     )
 
     if args.cmd == "dl-all":
-        dl.download_all(args.yaml_root, args.gt_patch_branch_name)
+        dl.download_all(args.yaml_root, args.gt_patch_branch_name, args.pre_mig_branch_name)
     elif args.cmd == "dl-single":
-        dl.download_single(args.yaml_file, args.gt_patch_branch_name)
+        dl.download_single(args.yaml_file, args.gt_patch_branch_name, args.pre_mig_branch_name)
 
 if __name__ == "__main__":
     main()

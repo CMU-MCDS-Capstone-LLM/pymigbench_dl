@@ -1,4 +1,5 @@
 DEFAULT_GT_PATCH_BRANCH_NAME = "gt-patch"
+DEFAULT_PRE_MIG_BRANCH_NAME = "main"
 PYMIGBENCH_DL_GIT_USERNAME = "PyMigBench Downloader"
 PYMIGBENCH_DL_GIT_EMAIL = "downloader@pymigbench_dl.local"
 

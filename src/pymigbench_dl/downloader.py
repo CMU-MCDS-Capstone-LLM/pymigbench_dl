@@ -8,7 +8,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from .utils.repo import create_pymigbench_type_repo
 from .utils.paths import to_path
-from .const.git import DEFAULT_GT_PATCH_BRANCH_NAME
+from .const.git import DEFAULT_GT_PATCH_BRANCH_NAME, DEFAULT_PRE_MIG_BRANCH_NAME
 
 from .providers.github.models import CommitInfo
 from .providers.github.client import GitHubClient
@@ -35,54 +35,58 @@ class PyMigBenchDownloader:
         self.logger.info("Initialized downloader with output folder %s (workers=%d, rate=%.2fs)",
                        self.output_dir, self.max_workers, self.rate_limit_delay)
 
-    def process_single_commit(self, commit_info: CommitInfo, gt_patch_branch_name: str) -> bool:
+    def process_single_commit(self, commit_info: CommitInfo, gt_patch_branch_name: str, pre_mig_branch_name: str) -> bool:
         """
         Process a single commit: check parents, download if valid.
-        
+
         Args:
             commit_info: Information about the commit to process
-            
+            gt_patch_branch_name: Name of the branch for ground-truth patch
+            pre_mig_branch_name: Name of the branch for pre-migration state
+
         Returns:
             True if processed successfully, False otherwise
         """
         try:
-            create_pymigbench_type_repo(commit_info, self.output_dir, gt_patch_branch_name, self.github_client)
+            create_pymigbench_type_repo(commit_info, self.output_dir, gt_patch_branch_name, self.github_client, pre_mig_branch_name)
             return True
         except Exception as e:
             self.logger.error(f"Failed to process repo {commit_info.repo} commit {commit_info.commit_sha}")
             self.logger.error(f"Got error: {e}")
             return False
 
-    def download_single(self, yaml_file_path: str, gt_patch_branch_name: str = DEFAULT_GT_PATCH_BRANCH_NAME) -> None:
+    def download_single(self, yaml_file_path: str, gt_patch_branch_name: str = DEFAULT_GT_PATCH_BRANCH_NAME, pre_mig_branch_name: str = DEFAULT_PRE_MIG_BRANCH_NAME) -> None:
         """
         Download a single commit from PyMigBench dataset, following the provided yaml file
 
         Args:
             yaml_file_path: path to the yaml file that defines a migration commit in PyMigBench format
             gt_patch_branch_name: Name of the branch that is created using the snapshot at ground-truth patch (i.e. migration patch)
+            pre_mig_branch_name: Name of the branch for pre-migration state
         """
         commit_info = self.pymigbench_loader.load_single_commit_from_yaml(yaml_file_path)
-        self.process_single_commit(commit_info, gt_patch_branch_name)
+        self.process_single_commit(commit_info, gt_patch_branch_name, pre_mig_branch_name)
         
-    def download_all(self, yaml_root_path: str, gt_patch_branch_name: str = DEFAULT_GT_PATCH_BRANCH_NAME) -> None:
+    def download_all(self, yaml_root_path: str, gt_patch_branch_name: str = DEFAULT_GT_PATCH_BRANCH_NAME, pre_mig_branch_name: str = DEFAULT_PRE_MIG_BRANCH_NAME) -> None:
         """
         Download all valid commits from PyMigBench dataset.
-        
+
         Args:
             yaml_root_path: Path to the directory containing PyMigBench YAML files
             gt_patch_branch_name: Name of the branch that is created using the snapshot at ground-truth patch (i.e. migration patch)
+            pre_mig_branch_name: Name of the branch for pre-migration state
         """
         commits = self.pymigbench_loader.load_all_commits_from_database(yaml_root_path)
-        
+
         self.logger.info(f"Starting download of {len(commits)} commits using {self.max_workers} workers")
-        
+
         successful = 0
         failed = 0
-        
+
         with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
             # Submit all jobs
             future_to_commit = {
-                executor.submit(self.process_single_commit, commit, gt_patch_branch_name): commit 
+                executor.submit(self.process_single_commit, commit, gt_patch_branch_name, pre_mig_branch_name): commit
                 for commit in commits
             }
             
