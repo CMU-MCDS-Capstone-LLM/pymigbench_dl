@@ -9,3 +9,4 @@ data/
 pymigbench_dl.egg-info/
 .pytest_cache/
 .vscode/
+experiments/

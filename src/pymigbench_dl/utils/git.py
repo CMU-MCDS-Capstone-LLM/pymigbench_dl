@@ -1,62 +1,71 @@
+"""
+Wrapper for git commands
+"""
+
 import logging
-import shutil
-import tempfile
 from pathlib import Path
 import subprocess
 
-from pymigbench_dl.providers.github.client import GitHubClient
-from pymigbench_dl.providers.github.models import CommitInfo
+from ..const.git import PYMIGBENCH_DL_GIT_USERNAME, PYMIGBENCH_DL_GIT_EMAIL
 
-from .fs import extract_zip_flat
+logger = logging.getLogger(__name__)
 
-def create_git_repo_from_commit(output_dir: Path, repo_folder_name: str, commit_info: CommitInfo, github_client: GitHubClient) -> None:
-    logger = logging.getLogger(__name__)
+def run_git(repo_dir: Path, *args: str) -> str:
+    cp = subprocess.run(["git", *args], cwd=repo_dir, check=True,
+                        capture_output=True, text=True)
+    return cp.stdout.strip()
 
-    repo = commit_info.repo
-    commit_sha = commit_info.commit_sha
-    tmp_prefix = f".tmp__{commit_info.repo_safe}__{commit_sha}"
-    repo_dir = output_dir / repo_folder_name
+def is_git_repo(repo_dir: Path) -> bool:
+    try:
+        run_git(repo_dir, "-C", str("."), "rev-parse", "--is-inside-work-tree")
+        return True
+    except subprocess.CalledProcessError:
+        return False
 
-    logger.debug(f"Create git repo from repo {repo} commit {commit_sha} at path {repo_dir}")
+def branch_exists(repo_dir: Path, branch_name: str) -> bool:
+    try:
+        run_git(repo_dir, "rev-parse", "--verify", "--quiet", f"refs/heads/{branch_name}")
+        return True
+    except subprocess.CalledProcessError:
+        return False
 
-    if repo_dir.exists():
-        raise ValueError(f"Can't create repo from commit at path {repo_dir}, folder already exists")
-
-    # tmp folder is removed when we exit with, even due to exception
-    with tempfile.TemporaryDirectory(dir=output_dir, prefix=tmp_prefix) as tmp:
-        tmpdir = Path(tmp)
-        zip_path = tmpdir / f"{commit_info.repo_safe}__{commit_sha}.zip"
-
-        # Download zip from commit
-        logger.info(f"Downloading GitHub repo {repo}:{commit_sha}")
-
-        github_client.download_commit_zip(repo, commit_sha, zip_path)
-
-        # Extract the zip in tmp dir
-        extracted_top = extract_zip_flat(zip_path, extract_to=tmpdir)
-
-        shutil.move(str(extracted_top), str(repo_dir))
-
-        initialize_git_repo(repo_dir)
-
-def initialize_git_repo(repo_dir: Path):
+def get_cur_branch_name(repo_dir: Path) -> str:
     """
-    Initialize a git repository and create a dummy commit.
-    
-    Args:
-        repo_dir: Directory to initialize as git repo
+    Get the name of current branch
     """
-    logger = logging.getLogger(__name__)
+    return run_git(repo_dir, "rev-parse", "--abbrev-ref", "HEAD")
 
-    logger.debug(f"Initializing git repo at folder {repo_dir}")
+def check_branch_name(repo_dir: Path, name: str):
+    """
+    Validate if a branch name is valid in git. Raise if not.
+    """
+    run_git(repo_dir, "check-ref-format", f"refs/heads/{name}")
+    return name
 
-    # Change to the repository directory and run git commands
-    git_commands = [
-        ["git", "init"],
-        ["git", "add", "."],
-        ["git", "-c", "user.name=PyMigBench Downloader", "-c", "user.email=downloader@pymigbench.local", 
-            "commit", "-m", "Repo initialized using parent commit of the migration commit (git history of original repo is removed)"]
-    ]
-    
-    for cmd in git_commands:
-        subprocess.run(cmd, cwd=repo_dir, check=True, capture_output=True)
+def safe_create_branch_and_checkout(repo_dir: Path, branch_name: str): 
+    """
+    Create a branch, check various condition to ensure creation is safe. Raise if unsafe.
+
+    We did the following checks
+    - the repo_dir is a git repo
+    - 
+    """
+    if not is_git_repo(repo_dir):
+        raise RuntimeError(f"Can't create branch '{branch_name}' at path {repo_dir} because it's not a git repo.")
+
+    if branch_exists(repo_dir, branch_name):
+        raise RuntimeError(f"Can't create branch '{branch_name}' at path {repo_dir} because the branch name '{branch_name}' conflicts with an existing branch")
+
+    check_branch_name(repo_dir, branch_name)
+
+    run_git(repo_dir, "checkout", "-b", branch_name) 
+
+def add_and_commit(repo_dir, commit_msg: str):
+    run_git(repo_dir, "add", "-A")
+    run_git(repo_dir, 
+        "-c", f"user.name={PYMIGBENCH_DL_GIT_USERNAME}", 
+        "-c", f"user.email={PYMIGBENCH_DL_GIT_EMAIL}", 
+        "commit", 
+        "-m", commit_msg
+    )
+

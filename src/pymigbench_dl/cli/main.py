@@ -10,6 +10,7 @@ import argparse
 import logging
 
 from ..downloader import PyMigBenchDownloader
+from ..const.git import DEFAULT_GT_PATCH_BRANCH_NAME
 
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="pymigbench-dl", description="PyMigBench downloader helper")
@@ -19,6 +20,7 @@ def build_parser() -> argparse.ArgumentParser:
     a = sub.add_parser("dl-all", help="Download all commits from a YAML root")
     a.add_argument("--yaml-root", required=True)
     a.add_argument("--output-dir", required=True)
+    a.add_argument("--gt-patch-branch-name", default=DEFAULT_GT_PATCH_BRANCH_NAME)
     a.add_argument("--github-token")
     a.add_argument("--max-workers", type=int, default=5)
     a.add_argument("--max-count", type=int)
@@ -28,6 +30,7 @@ def build_parser() -> argparse.ArgumentParser:
     s = sub.add_parser("dl-single", help="Download a single commit from a YAML file")
     s.add_argument("--yaml-file", required=True)
     s.add_argument("--output-dir", required=True)
+    s.add_argument("--gt-patch-branch-name", default=DEFAULT_GT_PATCH_BRANCH_NAME)
     s.add_argument("--github-token")
 
     p.add_argument("-v", "--verbose", action="count", default=0)
@@ -50,9 +53,9 @@ def main():
     )
 
     if args.cmd == "dl-all":
-        dl.download_all(args.yaml_root, getattr(args, "max_count", None))
+        dl.download_all(args.yaml_root, args.gt_patch_branch_name, getattr(args, "max_count", None))
     elif args.cmd == "dl-single":
-        dl.download_single(args.yaml_file)
+        dl.download_single(args.yaml_file, args.gt_patch_branch_name)
 
 if __name__ == "__main__":
     main()

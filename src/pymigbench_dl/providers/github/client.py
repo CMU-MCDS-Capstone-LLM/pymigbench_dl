@@ -2,12 +2,10 @@
 GitHub API client for downloading commits and getting parent information.
 """
 
-import zipfile
 import requests
 import logging
 from pathlib import Path
 from typing import Optional, Tuple
-import subprocess
 
 
 class GitHubClient:
@@ -47,16 +45,18 @@ class GitHubClient:
         
         return parent_count, first_parent_sha
 
-    def download_commit_zip(self, repo: str, commit_sha: str, output_path: Path) -> None:
+    def download_commit_tar(self, repo: str, commit_sha: str, output_path: Path) -> None:
         """
-        Download a specific commit as a zip file from GitHub.
+        Download a specific commit as a tarball from GitHub.
+
+        Note that we prefer tarball over zipball because tarball preserves symlinks and modes
         
         Args:
             repo: Repository in format "owner/name"
             commit_sha: Commit SHA to download
-            output_path: Path where to save the zip file
+            output_path: Path where to save the tar file
         """
-        url = f"https://api.github.com/repos/{repo}/zipball/{commit_sha}"
+        url = f"https://api.github.com/repos/{repo}/tarball/{commit_sha}"
         
         response = self.session.get(url, stream=True)
         response.raise_for_status()
