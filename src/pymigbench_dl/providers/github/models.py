@@ -3,6 +3,8 @@ Data models for PyMigBench downloader.
 """
 
 from dataclasses import dataclass
+from pymigbench.migration import Migration
+from typing import Self
 
 
 @dataclass
@@ -20,3 +22,7 @@ class CommitInfo:
     def folder_name(self) -> str:
         """Folder name for this commit download. Unique across PyMigBench"""
         return f"{self.repo_safe}__{self.commit_sha}"
+
+    @classmethod
+    def from_mig(cls, mig: Migration) -> Self:
+        return cls(repo=mig.repo, commit_sha=mig.commit)
