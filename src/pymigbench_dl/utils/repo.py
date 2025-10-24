@@ -86,8 +86,7 @@ def create_pymigbench_type_repo(
     """
     final_dir = output_dir / mig_commit_info.folder_name
     if final_dir.exists():
-        logger.info("Skipping %s (exists at %s)", mig_commit_info.commit_sha, final_dir)
-        return
+        raise RuntimeError(f"Attempt to download to a non-empty folder {final_dir} for commit {mig_commit_info}")
 
     parents, parent_sha = github_client.get_commit_parents(mig_commit_info.repo, mig_commit_info.commit_sha)
     if parents != 1 or not parent_sha:

@@ -26,3 +26,6 @@ class CommitInfo:
     @classmethod
     def from_mig(cls, mig: Migration) -> Self:
         return cls(repo=mig.repo, commit_sha=mig.commit)
+
+    def __str__(self):
+        return f"{self.repo}@{self.commit_sha}"

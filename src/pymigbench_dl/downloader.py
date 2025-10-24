@@ -3,7 +3,6 @@ Main downloader coordinator for PyMigBench dataset.
 """
 
 import logging
-from typing import Optional
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from .utils.repo import create_pymigbench_type_repo
@@ -18,7 +17,7 @@ from .loader import PyMigBenchLoader
 class PyMigBenchDownloader:
     """Main coordinator for downloading PyMigBench dataset."""
     
-    def __init__(self, github_token: str, output_dir: str = "repos", max_workers: int = 5, rate_limit_delay: float = 1.0):
+    def __init__(self, github_token: str | None, output_dir: str = "repos", max_workers: int = 5, rate_limit_delay: float = 1.0):
         if github_token == None or github_token == "":
             raise RuntimeError("We require the user to provide a GitHub token to use pymigbench_dl to avoid being rate-limited by GitHub.")
         self.output_dir = to_path(output_dir, check_exists=False)
@@ -35,7 +34,11 @@ class PyMigBenchDownloader:
         self.logger.info("Initialized downloader with output folder %s (workers=%d, rate=%.2fs)",
                        self.output_dir, self.max_workers, self.rate_limit_delay)
 
-    def process_single_commit(self, commit_info: CommitInfo, gt_patch_branch_name: str, pre_mig_branch_name: str) -> bool:
+    def has_downloaded(self, mig_commit_info: CommitInfo):
+        final_dir = self.output_dir / mig_commit_info.folder_name
+        return final_dir.exists()
+
+    def download_single_from_commit_info(self, commit_info: CommitInfo, gt_patch_branch_name: str, pre_mig_branch_name: str) -> bool:
         """
         Process a single commit: check parents, download if valid.
 
@@ -48,6 +51,9 @@ class PyMigBenchDownloader:
             True if processed successfully, False otherwise
         """
         try:
+            if self.has_downloaded(commit_info):
+                self.logger.info("Skipping %s because it's already downloaded", commit_info)
+                return True
             create_pymigbench_type_repo(commit_info, self.output_dir, gt_patch_branch_name, self.github_client, pre_mig_branch_name)
             return True
         except Exception as e:
@@ -65,7 +71,7 @@ class PyMigBenchDownloader:
             pre_mig_branch_name: Name of the branch for pre-migration state
         """
         commit_info = self.pymigbench_loader.load_single_commit_from_yaml(yaml_file_path)
-        self.process_single_commit(commit_info, gt_patch_branch_name, pre_mig_branch_name)
+        self.download_single_from_commit_info(commit_info, gt_patch_branch_name, pre_mig_branch_name)
         
     def download_all(self, yaml_root_path: str, gt_patch_branch_name: str = DEFAULT_GT_PATCH_BRANCH_NAME, pre_mig_branch_name: str = DEFAULT_PRE_MIG_BRANCH_NAME) -> None:
         """
@@ -86,7 +92,7 @@ class PyMigBenchDownloader:
         with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
             # Submit all jobs
             future_to_commit = {
-                executor.submit(self.process_single_commit, commit, gt_patch_branch_name, pre_mig_branch_name): commit
+                executor.submit(self.download_single_from_commit_info, commit, gt_patch_branch_name, pre_mig_branch_name): commit
                 for commit in commits
             }
             
